@@ -86,6 +86,23 @@
          ORDER BY r.DETECTED_AT DESC, r.ID DESC
     </select>
 
+    <select id="findByLawIdsAndStatuses" resultType="com.safetylaw.monitor.dto.LawRevisionRow">
+        SELECT <include refid="listColumns"/>
+          FROM LAW_REVISIONS r
+          JOIN TRACKED_LAWS  l ON l.ID = r.TRACKED_LAW_ID
+         WHERE r.TRACKED_LAW_ID IN
+        <foreach item="id" collection="lawIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <if test="statuses != null and !statuses.isEmpty()">
+            AND r.REVIEW_STATUS IN
+            <foreach item="status" collection="statuses" open="(" separator="," close=")">
+                #{status}
+            </foreach>
+        </if>
+         ORDER BY r.DETECTED_AT DESC, r.ID DESC
+    </select>
+
     <select id="findPendingForDashboard" resultType="com.safetylaw.monitor.dto.LawRevisionRow">
         SELECT * FROM (
             SELECT <include refid="listColumns"/>

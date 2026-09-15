@@ -87,6 +87,10 @@
          ORDER BY NAME
     </select>
 
+    <select id="findAllPromulgationKeys" resultType="com.safetylaw.monitor.domain.ScrapedLawContent">
+        SELECT SOURCE_TYPE, EXTERNAL_ID, PROMULGATION_NO FROM SCRAPED_LAW_CONTENTS
+    </select>
+
     <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM SCRAPED_LAW_CONTENTS
     </select>

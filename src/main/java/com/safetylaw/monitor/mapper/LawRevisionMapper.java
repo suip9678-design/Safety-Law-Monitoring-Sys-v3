@@ -41,6 +41,14 @@ public interface LawRevisionMapper {
     /** 활성 법령에 한정한 검토 상태별 건수. */
     List<StatusCount> countByStatusForActiveLaws();
 
+    /**
+     * 주어진 법령들의 개정 이력. 문서 기준 화면을 만들 때 쓴다.
+     *
+     * @param statuses 비어 있으면 상태를 가리지 않는다
+     */
+    List<LawRevisionRow> findByLawIdsAndStatuses(@Param("lawIds") List<Long> lawIds,
+                                                 @Param("statuses") List<String> statuses);
+
     void updateReview(LawRevision revision);
 
     void bulkUpdateStatus(@Param("ids") List<Long> ids,

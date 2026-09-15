@@ -67,8 +67,19 @@ public record AppProperties(
         }
     }
 
+    /**
+     * 메일 발송 설정의 초기값.
+     *
+     * <p>사용자가 설정 화면에서 바꾼 값이 DB 에 있으면 그쪽이 우선이므로,
+     * 메일 발송기는 미리 만들어 두지 않고 보낼 때마다 현재 설정으로 만든다.
+     */
     public record Email(
             @DefaultValue("true") boolean enabled,
+            @DefaultValue("") String host,
+            @DefaultValue("587") int port,
+            @DefaultValue("true") boolean useTls,
+            @DefaultValue("") String username,
+            @DefaultValue("") String password,
             @DefaultValue("") String from,
             @DefaultValue("") String alertRecipients
     ) {

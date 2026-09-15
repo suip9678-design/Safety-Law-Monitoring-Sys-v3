@@ -46,6 +46,9 @@ public interface TrackedLawMapper {
 
     int countActive();
 
+    /** 활성 법령 중 가장 최근 확인 시각. 대시보드의 "마지막 동기화"에 쓴다. */
+    java.time.LocalDateTime findMaxLastSyncedAt();
+
     /** 어떤 사내 문서와도 매핑되지 않은 법령 수(대시보드 표시용). */
     int countUnmapped();
 }

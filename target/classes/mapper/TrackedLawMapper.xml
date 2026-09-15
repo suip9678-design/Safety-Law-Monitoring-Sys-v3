@@ -122,6 +122,10 @@
         SELECT COUNT(*) FROM TRACKED_LAWS WHERE IS_ACTIVE = 1
     </select>
 
+    <select id="findMaxLastSyncedAt" resultType="java.time.LocalDateTime">
+        SELECT MAX(LAST_SYNCED_AT) FROM TRACKED_LAWS WHERE IS_ACTIVE = 1
+    </select>
+
     <select id="countUnmapped" resultType="int">
         SELECT COUNT(*)
           FROM TRACKED_LAWS l

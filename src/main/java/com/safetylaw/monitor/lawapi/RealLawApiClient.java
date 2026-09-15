@@ -11,7 +11,9 @@ import java.util.Set;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import org.w3c.dom.Document;
+import com.safetylaw.monitor.support.Xml;
+import com.safetylaw.monitor.support.XmlParseException;
+
 import org.w3c.dom.Element;
 
 /**
@@ -116,12 +118,11 @@ class RealLawApiClient implements LawApiClient {
             return List.of();
         }
 
-        Document document = LawXml.parse(body);
-        Element root = document.getDocumentElement();
+        Element root = parseOrFail(body);
         String itemTag = LIST_ITEM_TAG.getOrDefault(sourceType, sourceType);
 
         List<LawApiItem> items = new ArrayList<>();
-        for (Element element : LawXml.children(root, itemTag)) {
+        for (Element element : Xml.children(root, itemTag)) {
             items.add(extract(element, sourceType, false));
         }
         return items;
@@ -143,8 +144,8 @@ class RealLawApiClient implements LawApiClient {
             if (body == null) {
                 return null;
             }
-            Element root = LawXml.parse(body).getDocumentElement();
-            String total = LawXml.childText(root, List.of("totalCnt"));
+            Element root = parseOrFail(body);
+            String total = Xml.childText(root, List.of("totalCnt"));
             return (total != null && total.matches("\\d+")) ? Integer.valueOf(total) : null;
         } catch (RestClientException | LawApiException e) {
             // 진행률 표시용 부가 정보라 실패해도 기능을 막지 않는다.
@@ -189,7 +190,7 @@ class RealLawApiClient implements LawApiClient {
                     "법령 상세 API가 오류 페이지를 반환했습니다 (파라미터 또는 일련번호 값을 확인하세요).");
         }
 
-        Element root = LawXml.parse(body).getDocumentElement();
+        Element root = parseOrFail(body);
         LawApiItem item = extract(root, sourceType, true);
         if (item.getName() == null) {
             return null;
@@ -200,6 +201,15 @@ class RealLawApiClient implements LawApiClient {
         item.setContent(fullText.content());
         item.setArticleContentLen(fullText.articleLen());
         return item;
+    }
+
+    /** 해석 실패를 이 API 의 오류로 바꿔 전달한다. 호출 측이 원인을 화면에 보여줄 수 있어야 한다. */
+    private static Element parseOrFail(byte[] body) {
+        try {
+            return Xml.parse(body).getDocumentElement();
+        } catch (XmlParseException e) {
+            throw new LawApiException("법령 API 응답을 해석할 수 없습니다: " + e.getMessage(), e);
+        }
     }
 
     private LawApiItem extract(Element element, String sourceType, boolean deep) {
@@ -223,7 +233,7 @@ class RealLawApiClient implements LawApiClient {
         if (tags.isEmpty()) {
             return null;
         }
-        return deep ? LawXml.textAnywhere(element, tags) : LawXml.childText(element, tags);
+        return deep ? Xml.textAnywhere(element, tags) : Xml.childText(element, tags);
     }
 
     private static String normalizeLink(String link) {
@@ -259,10 +269,10 @@ class RealLawApiClient implements LawApiClient {
         List<String> parts = new ArrayList<>();
         Set<Element> covered = Collections.newSetFromMap(new IdentityHashMap<>());
 
-        for (Element unit : LawXml.descendantsAndSelf(root, List.of(ARTICLE_UNIT_TAG))) {
+        for (Element unit : Xml.descendantsAndSelf(root, List.of(ARTICLE_UNIT_TAG))) {
             List<String> texts = new ArrayList<>();
-            for (Element el : LawXml.descendantsAndSelf(unit, CONTENT_TAGS)) {
-                String text = LawXml.trimmed(el.getTextContent());
+            for (Element el : Xml.descendantsAndSelf(unit, CONTENT_TAGS)) {
+                String text = Xml.trimmed(el.getTextContent());
                 if (text != null) {
                     texts.add(text);
                     covered.add(el);
@@ -282,11 +292,11 @@ class RealLawApiClient implements LawApiClient {
 
         int articleLen = String.join("\n", parts).length();
 
-        for (Element el : LawXml.descendantsAndSelf(root, CONTENT_TAGS)) {
+        for (Element el : Xml.descendantsAndSelf(root, CONTENT_TAGS)) {
             if (covered.contains(el)) {
                 continue;
             }
-            String text = LawXml.trimmed(el.getTextContent());
+            String text = Xml.trimmed(el.getTextContent());
             if (text != null) {
                 parts.add(text);
             }
@@ -296,12 +306,12 @@ class RealLawApiClient implements LawApiClient {
     }
 
     private static String articleLabel(Element unit) {
-        String no = LawXml.childText(unit, List.of(ARTICLE_NO_TAG));
+        String no = Xml.childText(unit, List.of(ARTICLE_NO_TAG));
         if (no == null || !no.matches("\\d+")) {
             return null;
         }
         StringBuilder label = new StringBuilder("제").append(Integer.parseInt(no)).append("조");
-        String subNo = LawXml.childText(unit, List.of(ARTICLE_SUB_NO_TAG));
+        String subNo = Xml.childText(unit, List.of(ARTICLE_SUB_NO_TAG));
         if (subNo != null && subNo.matches("\\d+") && Integer.parseInt(subNo) > 0) {
             label.append("의").append(Integer.parseInt(subNo));
         }

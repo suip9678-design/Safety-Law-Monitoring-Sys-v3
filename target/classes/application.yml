@@ -48,17 +48,6 @@ spring:
         oracle.jdbc.ReadTimeout: 60000
         oracle.net.CONNECT_TIMEOUT: 20000
 
-  mail:
-    host: ${SMTP_HOST:}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USER:}
-    password: ${SMTP_PASSWORD:}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: ${SMTP_USE_TLS:true}
-      mail.smtp.connectiontimeout: 10000
-      mail.smtp.timeout: 10000
-
   web:
     resources:
       static-locations: classpath:/static/
@@ -114,8 +103,15 @@ app:
     username: ${DASHBOARD_USERNAME:}
     password: ${DASHBOARD_PASSWORD:}
 
+  # 메일 발송. 설정 화면에서 바꾼 값이 DB 에 있으면 그쪽이 우선하므로
+  # 여기 값은 최초 기본값으로만 쓰인다.
   email:
     enabled: ${FEATURE_EMAIL_ENABLED:true}
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    use-tls: ${SMTP_USE_TLS:true}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
     from: ${SMTP_FROM:}
     # 쉼표로 구분
     alert-recipients: ${ALERT_EMAILS:}

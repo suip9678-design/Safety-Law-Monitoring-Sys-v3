@@ -60,6 +60,17 @@
         </foreach>
     </select>
 
+    <select id="findDocumentTitlesByLawIds" resultType="com.safetylaw.monitor.dto.LawDocumentTitle">
+        SELECT m.TRACKED_LAW_ID, d.TITLE AS DOCUMENT_TITLE
+          FROM DOC_LAW_MAPPINGS m
+          JOIN COMPANY_DOCUMENTS d ON d.ID = m.DOCUMENT_ID
+         WHERE m.TRACKED_LAW_ID IN
+        <foreach item="id" collection="lawIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+         ORDER BY m.TRACKED_LAW_ID, d.TITLE
+    </select>
+
     <delete id="deleteById">
         DELETE FROM DOC_LAW_MAPPINGS WHERE ID = #{id}
     </delete>

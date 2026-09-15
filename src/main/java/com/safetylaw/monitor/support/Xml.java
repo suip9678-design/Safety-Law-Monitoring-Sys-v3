@@ -1,4 +1,4 @@
-package com.safetylaw.monitor.lawapi;
+package com.safetylaw.monitor.support;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -15,17 +15,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * 법령 API 의 XML 응답을 다루는 도구.
+ * 외부에서 받은 XML 을 다루는 공용 도구.
  *
- * <p>외부에서 받은 XML 을 파싱하므로 외부 개체 참조(XXE)를 막은 설정으로만
- * 읽는다. 문서 순서를 지켜 훑어야 조문 본문이 원래 순서대로 모인다.
+ * <p>법령 API 응답과 뉴스 RSS 를 모두 이 경로로 읽는다. 둘 다 외부 입력이라
+ * 외부 개체 참조(XXE)를 막은 설정으로만 파싱한다. 이 방어 설정이 여러
+ * 곳으로 흩어지면 한쪽만 빠뜨리기 쉬워 한 곳에 모아 둔다.
  */
-final class LawXml {
+public final class Xml {
 
-    private LawXml() {
+    private Xml() {
     }
 
-    static Document parse(byte[] xml) {
+    public static Document parse(byte[] xml) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -39,12 +40,12 @@ final class LawXml {
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(new ByteArrayInputStream(xml));
         } catch (Exception e) {
-            throw new LawApiException("법령 API 응답을 해석할 수 없습니다: " + e.getMessage(), e);
+            throw new XmlParseException(e.getMessage(), e);
         }
     }
 
     /** 바로 아래 자식 중 주어진 태그들을 순서대로 찾아 첫 값을 돌려준다. */
-    static String childText(Element parent, List<String> tagNames) {
+    public static String childText(Element parent, List<String> tagNames) {
         for (String tag : tagNames) {
             for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
                 if (child.getNodeType() == Node.ELEMENT_NODE && tag.equals(child.getNodeName())) {
@@ -58,8 +59,12 @@ final class LawXml {
         return null;
     }
 
+    public static String childText(Element parent, String tagName) {
+        return childText(parent, List.of(tagName));
+    }
+
     /** 트리 전체에서 주어진 태그들을 찾아 첫 값을 돌려준다. */
-    static String textAnywhere(Element root, List<String> tagNames) {
+    public static String textAnywhere(Element root, List<String> tagNames) {
         for (String tag : tagNames) {
             for (Element el : descendantsAndSelf(root, List.of(tag))) {
                 String text = trimmed(el.getTextContent());
@@ -72,7 +77,7 @@ final class LawXml {
     }
 
     /** 바로 아래 자식 중 해당 태그인 요소들. */
-    static List<Element> children(Element parent, String tagName) {
+    public static List<Element> children(Element parent, String tagName) {
         List<Element> out = new ArrayList<>();
         for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE && tagName.equals(child.getNodeName())) {
@@ -88,7 +93,7 @@ final class LawXml {
      * <p>태그별로 따로 모아 이어붙이면 본문이 원래 순서를 잃는다.
      * 한 번의 깊이 우선 탐색으로 순서를 지킨다.
      */
-    static List<Element> descendantsAndSelf(Element root, Collection<String> tagNames) {
+    public static List<Element> descendantsAndSelf(Element root, Collection<String> tagNames) {
         List<Element> out = new ArrayList<>();
         collect(root, tagNames, out);
         return out;
@@ -107,7 +112,7 @@ final class LawXml {
         }
     }
 
-    static String trimmed(String raw) {
+    public static String trimmed(String raw) {
         if (raw == null) {
             return null;
         }

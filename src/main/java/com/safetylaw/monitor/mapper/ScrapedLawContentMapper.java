@@ -37,6 +37,15 @@ public interface ScrapedLawContentMapper {
     /** 본문까지 포함해 읽는다. 검색에 걸린 행에만 쓸 것. */
     List<ScrapedLawContent> findByIds(@Param("ids") List<Long> ids);
 
+    /**
+     * 캐시된 항목의 식별자와 공포번호만 읽는다.
+     *
+     * <p>전체 법령 캐시에서 "공포번호가 그대로면 상세 조회를 건너뛴다"를
+     * 판단하는 데 쓴다. 항목마다 따로 조회하지 않도록 한 번에 읽되,
+     * 본문(CLOB)은 제외해야 수만 건이어도 메모리를 적게 쓴다.
+     */
+    List<ScrapedLawContent> findAllPromulgationKeys();
+
     int countAll();
 
     LocalDateTime findMaxCachedAt();

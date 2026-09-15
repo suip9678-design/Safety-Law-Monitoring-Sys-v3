@@ -24,4 +24,7 @@ public interface NewsItemMapper {
 
     /** 예시가 아닌 실제 항목 수. 예시 항목을 지워도 되는지 판단하는 데 쓴다. */
     int countRealByCategory(@Param("category") String category);
+
+    /** 한 갈래에서 최신 {@code keep} 건만 남기고 오래된 것을 지운다. */
+    void deleteBeyondLimit(@Param("category") String category, @Param("keep") int keep);
 }

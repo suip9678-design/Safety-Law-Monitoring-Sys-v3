@@ -57,4 +57,19 @@
         SELECT COUNT(*) FROM NEWS_ITEMS WHERE CATEGORY = #{category} AND IS_DEMO = 0
     </select>
 
+    <!--
+      10g 에는 OFFSET 이 없으므로 순번을 매기는 분석 함수로 자른다.
+      ROW_NUMBER() 는 10g 에서도 쓸 수 있다.
+    -->
+    <delete id="deleteBeyondLimit">
+        DELETE FROM NEWS_ITEMS
+         WHERE ID IN (
+            SELECT ID FROM (
+                SELECT ID, ROW_NUMBER() OVER (ORDER BY FETCHED_AT DESC, ID DESC) AS RN
+                  FROM NEWS_ITEMS
+                 WHERE CATEGORY = #{category}
+            ) WHERE RN > #{keep}
+         )
+    </delete>
+
 </mapper>
