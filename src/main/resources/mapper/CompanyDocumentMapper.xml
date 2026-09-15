@@ -108,8 +108,12 @@
     <select id="findLawIdsByTags" resultType="com.safetylaw.monitor.dto.TagLawMatch">
         SELECT DISTINCT tg.TAG, l.ID AS LAW_ID
           FROM (
+            <!--
+              CAST 로 자료형을 명시한다. 값만 그대로 두면 이 자리에 오는 값의
+              자료형을 알 수 없다며 거부하는 DB 가 있다.
+            -->
             <foreach item="tag" collection="tags" separator="UNION ALL">
-                SELECT #{tag} AS TAG FROM DUAL
+                SELECT CAST(#{tag} AS VARCHAR(512)) AS TAG FROM DUAL
             </foreach>
           ) tg
          CROSS JOIN TRACKED_LAWS l

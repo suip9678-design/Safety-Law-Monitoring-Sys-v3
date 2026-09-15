@@ -9,11 +9,11 @@
     </sql>
 
     <!--
-      발행일이 없는 항목이 맨 위로 올라오지 않도록 NULLS LAST 를 명시한다.
-      발행일이 같으면 수집이 늦은 것을 위로 둔다.
+      발행일을 주지 않는 피드가 있어, 그런 항목은 가져온 시각으로 대신 정렬한다.
+      둘 다 "최신순"이라는 목적은 같다.
     -->
     <sql id="newestFirst">
-        ORDER BY PUBLISHED_AT DESC NULLS LAST, FETCHED_AT DESC, ID DESC
+        ORDER BY COALESCE(PUBLISHED_AT, FETCHED_AT) DESC, ID DESC
     </sql>
 
     <insert id="insert" parameterType="com.safetylaw.monitor.domain.NewsItem">

@@ -1,3 +1,19 @@
+# Java / Maven 빌드 산출물
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# 접속 정보가 담기는 로컬 설정 - 저장소에 올리지 않는다
+src/main/resources/application-local.yml
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
 __pycache__/
 *.pyc
 .venv/

@@ -50,7 +50,13 @@ public class SettingsService {
 
     /** 이 이름들은 별도 저장 항목이 아니라 유지보수 기록용이라 KEYS 에 넣지 않는다. */
     public static final String LAST_DAILY_MAINTENANCE_AT = "last_daily_maintenance_at";
-    public static final String HELP_SHOWN = "help_shown";
+    /**
+     * 도움말을 한 번이라도 띄웠는지 기억하는 표시.
+     *
+     * <p>브라우저가 아니라 서버에 저장한다. 그래야 브라우저를 바꾸거나 캐시를
+     * 지워도 설치 후 최초 한 번만 뜨고 그 뒤로는 자동으로 뜨지 않는다.
+     */
+    public static final String HELP_SHOWN = "help_shown_once";
 
     private final AppSettingMapper mapper;
     private final AppProperties properties;
@@ -110,7 +116,7 @@ public class SettingsService {
     public void setValues(Map<String, String> values) {
         values.forEach((key, value) -> {
             if (KEYS.contains(key) && value != null) {
-                mapper.upsert(key, value);
+                save(key, value);
             }
         });
     }
@@ -123,7 +129,14 @@ public class SettingsService {
 
     @Transactional
     public void setInternal(String key, String value) {
-        mapper.upsert(key, value);
+        save(key, value);
+    }
+
+    /** 있으면 고치고 없으면 넣는다. */
+    private void save(String key, String value) {
+        if (mapper.updateValue(key, value) == 0) {
+            mapper.insertValue(key, value);
+        }
     }
 
     public static boolean isTruthy(String value) {

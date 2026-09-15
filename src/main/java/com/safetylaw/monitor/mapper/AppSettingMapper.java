@@ -12,7 +12,10 @@ public interface AppSettingMapper {
 
     AppSetting findByKey(@Param("settingKey") String settingKey);
 
-    /** 있으면 갱신, 없으면 추가한다. */
-    void upsert(@Param("settingKey") String settingKey,
-                @Param("settingValue") String settingValue);
+    /** @return 갱신된 행 수. 0 이면 아직 없는 항목이므로 호출 측에서 insert 한다. */
+    int updateValue(@Param("settingKey") String settingKey,
+                    @Param("settingValue") String settingValue);
+
+    void insertValue(@Param("settingKey") String settingKey,
+                     @Param("settingValue") String settingValue);
 }
