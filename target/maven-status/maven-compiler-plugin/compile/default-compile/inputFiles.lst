@@ -16,6 +16,14 @@
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/dto/StatusCount.java
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/dto/TagLawMatch.java
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/dto/TrackedLawRow.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/DemoFixtures.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/DemoLawApiClient.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/LawApiClient.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/LawApiClientFactory.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/LawApiException.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/LawApiItem.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/LawXml.java
+/home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/lawapi/RealLawApiClient.java
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/mapper/AppSettingMapper.java
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/mapper/CompanyDocumentMapper.java
 /home/user/Safety-Law-Monitoring-Sys-v3/src/main/java/com/safetylaw/monitor/mapper/DocumentLawMappingMapper.java
