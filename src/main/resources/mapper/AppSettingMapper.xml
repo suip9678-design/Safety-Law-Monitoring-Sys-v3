@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.safetylaw.monitor.mapper.AppSettingMapper">
+
+    <select id="findAll" resultType="com.safetylaw.monitor.domain.AppSetting">
+        SELECT SETTING_KEY, SETTING_VALUE FROM APP_SETTINGS
+    </select>
+
+    <select id="findByKey" resultType="com.safetylaw.monitor.domain.AppSetting">
+        SELECT SETTING_KEY, SETTING_VALUE FROM APP_SETTINGS WHERE SETTING_KEY = #{settingKey}
+    </select>
+
+    <!--
+      MERGE 는 10g 에서도 지원한다. 이 테이블은 시퀀스를 쓰지 않고 키를 직접
+      넘기므로, MERGE 의 시퀀스 관련 제약에 걸리지 않는다.
+    -->
+    <update id="upsert">
+        MERGE INTO APP_SETTINGS t
+        USING (SELECT #{settingKey} AS K, #{settingValue} AS V FROM DUAL) s
+           ON (t.SETTING_KEY = s.K)
+         WHEN MATCHED THEN
+            UPDATE SET t.SETTING_VALUE = s.V
+         WHEN NOT MATCHED THEN
+            INSERT (SETTING_KEY, SETTING_VALUE) VALUES (s.K, s.V)
+    </update>
+
+</mapper>

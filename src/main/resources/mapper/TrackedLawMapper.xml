@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  Oracle 10g 기준으로 작성한 SQL.
+
+   - 기본키는 IDENTITY 가 없으므로 selectKey 로 시퀀스를 먼저 읽어 채운다.
+   - IS_ACTIVE 는 NUMBER(1) 이고, JDBC 드라이버가 Boolean 을 0/1 로 변환한다.
+   - 컬럼명(SOURCE_TYPE)과 자바 필드(sourceType) 연결은
+     map-underscore-to-camel-case 설정이 자동으로 처리한다.
+-->
+<mapper namespace="com.safetylaw.monitor.mapper.TrackedLawMapper">
+
+    <sql id="columns">
+        ID, SOURCE_TYPE, EXTERNAL_ID, MASTER_ID, NAME, CATEGORY, DEPARTMENT,
+        CURRENT_PROMULGATION_NO, CURRENT_PROMULGATION_DATE, CURRENT_ENFORCEMENT_DATE,
+        DETAIL_LINK, IS_ACTIVE, LAST_SYNCED_AT, CREATED_AT, UPDATED_AT
+    </sql>
+
+    <insert id="insert" parameterType="com.safetylaw.monitor.domain.TrackedLaw">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_TRACKED_LAWS.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO TRACKED_LAWS (
+            ID, SOURCE_TYPE, EXTERNAL_ID, MASTER_ID, NAME, CATEGORY, DEPARTMENT,
+            CURRENT_PROMULGATION_NO, CURRENT_PROMULGATION_DATE, CURRENT_ENFORCEMENT_DATE,
+            DETAIL_LINK, IS_ACTIVE, LAST_SYNCED_AT, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{id}, #{sourceType}, #{externalId}, #{masterId}, #{name}, #{category}, #{department},
+            #{currentPromulgationNo}, #{currentPromulgationDate}, #{currentEnforcementDate},
+            #{detailLink}, #{isActive}, #{lastSyncedAt}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <select id="findById" resultType="com.safetylaw.monitor.domain.TrackedLaw">
+        SELECT <include refid="columns"/> FROM TRACKED_LAWS WHERE ID = #{id}
+    </select>
+
+    <select id="findBySourceAndExternalId" resultType="com.safetylaw.monitor.domain.TrackedLaw">
+        SELECT <include refid="columns"/>
+          FROM TRACKED_LAWS
+         WHERE SOURCE_TYPE = #{sourceType}
+           AND EXTERNAL_ID = #{externalId}
+    </select>
+
+    <select id="findActive" resultType="com.safetylaw.monitor.domain.TrackedLaw">
+        SELECT <include refid="columns"/>
+          FROM TRACKED_LAWS
+         WHERE IS_ACTIVE = 1
+         ORDER BY NAME
+    </select>
+
+    <select id="findActiveBySourceType" resultType="com.safetylaw.monitor.domain.TrackedLaw">
+        SELECT <include refid="columns"/>
+          FROM TRACKED_LAWS
+         WHERE IS_ACTIVE = 1
+           AND SOURCE_TYPE = #{sourceType}
+         ORDER BY NAME
+    </select>
+
+    <!--
+      매핑 문서 수와 미검토 개정 건수를 스칼라 서브쿼리로 함께 가져온다.
+      미검토는 '미검토' 상태만 센다('검토중'은 제외 - 기존 동작과 동일).
+    -->
+    <select id="findAllWithCounts" resultType="com.safetylaw.monitor.dto.TrackedLawRow">
+        SELECT l.ID, l.SOURCE_TYPE, l.EXTERNAL_ID, l.MASTER_ID, l.NAME, l.CATEGORY, l.DEPARTMENT,
+               l.CURRENT_PROMULGATION_NO, l.CURRENT_PROMULGATION_DATE, l.CURRENT_ENFORCEMENT_DATE,
+               l.DETAIL_LINK, l.IS_ACTIVE, l.LAST_SYNCED_AT, l.CREATED_AT, l.UPDATED_AT,
+               (SELECT COUNT(*) FROM DOC_LAW_MAPPINGS m
+                 WHERE m.TRACKED_LAW_ID = l.ID)               AS MAPPED_DOCUMENT_COUNT,
+               (SELECT COUNT(*) FROM LAW_REVISIONS r
+                 WHERE r.TRACKED_LAW_ID = l.ID
+                   AND r.REVIEW_STATUS = '미검토')            AS UNREVIEWED_REVISION_COUNT
+          FROM TRACKED_LAWS l
+         <where>
+            <if test="activeOnly">
+                l.IS_ACTIVE = 1
+            </if>
+            <if test="sourceType != null and sourceType != ''">
+                AND l.SOURCE_TYPE = #{sourceType}
+            </if>
+         </where>
+         ORDER BY l.NAME
+    </select>
+
+    <select id="findRowById" resultType="com.safetylaw.monitor.dto.TrackedLawRow">
+        SELECT l.ID, l.SOURCE_TYPE, l.EXTERNAL_ID, l.MASTER_ID, l.NAME, l.CATEGORY, l.DEPARTMENT,
+               l.CURRENT_PROMULGATION_NO, l.CURRENT_PROMULGATION_DATE, l.CURRENT_ENFORCEMENT_DATE,
+               l.DETAIL_LINK, l.IS_ACTIVE, l.LAST_SYNCED_AT, l.CREATED_AT, l.UPDATED_AT,
+               (SELECT COUNT(*) FROM DOC_LAW_MAPPINGS m
+                 WHERE m.TRACKED_LAW_ID = l.ID)               AS MAPPED_DOCUMENT_COUNT,
+               (SELECT COUNT(*) FROM LAW_REVISIONS r
+                 WHERE r.TRACKED_LAW_ID = l.ID
+                   AND r.REVIEW_STATUS = '미검토')            AS UNREVIEWED_REVISION_COUNT
+          FROM TRACKED_LAWS l
+         WHERE l.ID = #{id}
+    </select>
+
+    <update id="updateCurrentState" parameterType="com.safetylaw.monitor.domain.TrackedLaw">
+        UPDATE TRACKED_LAWS
+           SET NAME                      = #{name},
+               CATEGORY                  = #{category},
+               DEPARTMENT                = #{department},
+               EXTERNAL_ID               = #{externalId},
+               MASTER_ID                 = #{masterId},
+               CURRENT_PROMULGATION_NO   = #{currentPromulgationNo},
+               CURRENT_PROMULGATION_DATE = #{currentPromulgationDate},
+               CURRENT_ENFORCEMENT_DATE  = #{currentEnforcementDate},
+               DETAIL_LINK               = #{detailLink},
+               IS_ACTIVE                 = #{isActive},
+               LAST_SYNCED_AT            = #{lastSyncedAt},
+               UPDATED_AT                = #{updatedAt}
+         WHERE ID = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM TRACKED_LAWS WHERE ID = #{id}
+    </delete>
+
+    <select id="countActive" resultType="int">
+        SELECT COUNT(*) FROM TRACKED_LAWS WHERE IS_ACTIVE = 1
+    </select>
+
+    <select id="countUnmapped" resultType="int">
+        SELECT COUNT(*)
+          FROM TRACKED_LAWS l
+         WHERE l.IS_ACTIVE = 1
+           AND NOT EXISTS (SELECT 1 FROM DOC_LAW_MAPPINGS m WHERE m.TRACKED_LAW_ID = l.ID)
+    </select>
+
+</mapper>

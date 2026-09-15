@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.safetylaw.monitor.mapper.NewsItemMapper">
+
+    <sql id="columns">
+        ID, CATEGORY, SOURCE_NAME, TITLE, LINK, GUID, PUBLISHED_AT, FETCHED_AT, IS_DEMO
+    </sql>
+
+    <!--
+      발행일이 없는 항목이 맨 위로 올라오지 않도록 NULLS LAST 를 명시한다.
+      발행일이 같으면 수집이 늦은 것을 위로 둔다.
+    -->
+    <sql id="newestFirst">
+        ORDER BY PUBLISHED_AT DESC NULLS LAST, FETCHED_AT DESC, ID DESC
+    </sql>
+
+    <insert id="insert" parameterType="com.safetylaw.monitor.domain.NewsItem">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_NEWS_ITEMS.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO NEWS_ITEMS (
+            ID, CATEGORY, SOURCE_NAME, TITLE, LINK, GUID, PUBLISHED_AT, FETCHED_AT, IS_DEMO
+        ) VALUES (
+            #{id}, #{category}, #{sourceName}, #{title}, #{link}, #{guid},
+            #{publishedAt}, #{fetchedAt}, #{isDemo}
+        )
+    </insert>
+
+    <select id="countByCategoryAndGuid" resultType="int">
+        SELECT COUNT(*) FROM NEWS_ITEMS WHERE CATEGORY = #{category} AND GUID = #{guid}
+    </select>
+
+    <select id="findByCategory" resultType="com.safetylaw.monitor.domain.NewsItem">
+        SELECT * FROM (
+            SELECT <include refid="columns"/>
+              FROM NEWS_ITEMS
+             WHERE CATEGORY = #{category}
+             <include refid="newestFirst"/>
+        ) WHERE ROWNUM &lt;= #{limit}
+    </select>
+
+    <select id="findRecent" resultType="com.safetylaw.monitor.domain.NewsItem">
+        SELECT * FROM (
+            SELECT <include refid="columns"/>
+              FROM NEWS_ITEMS
+             <include refid="newestFirst"/>
+        ) WHERE ROWNUM &lt;= #{limit}
+    </select>
+
+    <delete id="deleteDemoByCategory">
+        DELETE FROM NEWS_ITEMS WHERE CATEGORY = #{category} AND IS_DEMO = 1
+    </delete>
+
+    <select id="countRealByCategory" resultType="int">
+        SELECT COUNT(*) FROM NEWS_ITEMS WHERE CATEGORY = #{category} AND IS_DEMO = 0
+    </select>
+
+</mapper>
