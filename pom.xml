@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.15</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.safetylaw</groupId>
+  <artifactId>safety-law-monitor</artifactId>
+  <version>3.0.0</version>
+  <name>safety-law-monitor</name>
+  <description>안전보건 법령·고시 개정 추적 시스템 (Java/Spring Boot/Oracle)</description>
+
+  <properties>
+    <java.version>17</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <mybatis.starter.version>3.0.4</mybatis.starter.version>
+
+    <!--
+      Oracle JDBC 드라이버 버전 선택은 이 프로젝트에서 가장 주의가 필요한 부분이다.
+
+      대상 DB가 Oracle 10.2.0.4로, Oracle이 공식 지원을 종료한 버전이다.
+      최신 드라이버(ojdbc11 / 19c·21c·23ai 계열)는 10.2 서버로의 접속을
+      거부하며 "ORA-28040: No matching authentication protocol"이 발생한다.
+
+      그래서 Maven Central에 올라와 있는 것 중 10g 접속 가능성이 가장 높은
+      12.2.0.1 계열 ojdbc8을 기본값으로 둔다. 이 버전은 Java 8 기준으로
+      컴파일되어 있으나 JDK 17 런타임에서 정상 동작한다.
+
+      그래도 ORA-28040이 발생하면 application.yml의 접속 속성
+      oracle.net.allowedLogonVersion=8 을 켜거나, Oracle 다운로드 페이지에서
+      ojdbc6(11.2.0.4)를 내려받아 로컬 저장소에 설치한 뒤 아래 좌표를 교체한다.
+        mvn install:install-file -Dfile=ojdbc6.jar -DgroupId=com.oracle \
+            -DartifactId=ojdbc6 -Dversion=11.2.0.4 -Dpackaging=jar
+
+      실제 접속 가능 여부는 tools/OracleConnectionTest.java 로 먼저 확인할 것.
+    -->
+    <ojdbc.version>12.2.0.1</ojdbc.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
+    <!-- MyBatis: Oracle 10g 문법에 맞춘 SQL을 직접 작성하기 위해 JPA 대신 사용 -->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>${mybatis.starter.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc8</artifactId>
+      <version>${ojdbc.version}</version>
+    </dependency>
+
+    <!-- 개발 중 Oracle 없이 구동하기 위한 인메모리 DB (Oracle 호환 모드) -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter-test</artifactId>
+      <version>${mybatis.starter.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
